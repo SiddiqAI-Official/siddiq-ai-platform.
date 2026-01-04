@@ -36,7 +36,7 @@ export default function SiddiqAI() {
   };
 
   const startNewProject = () => {
-    if(confirm("Start new project? This will clear history.")) {
+    if(confirm("Start new project? History will be cleared.")) {
       localStorage.removeItem('siddiq_code');
       localStorage.removeItem('siddiq_msgs');
       window.location.reload();
@@ -45,7 +45,7 @@ export default function SiddiqAI() {
 
   const saveToCloud = async () => {
     const { error } = await supabase.from('projects').insert([
-      { name: 'Siddiq Design ' + new Date().toLocaleTimeString(), code: generatedCode, history: messages }
+      { name: 'Project ' + new Date().toLocaleTimeString(), code: generatedCode, history: messages }
     ]);
     if (error) alert("Error: " + error.message);
     else alert("Saved to Cloud! ☁️");
@@ -65,6 +65,7 @@ export default function SiddiqAI() {
       });
       const data = await res.json();
       const cleanCode = data.code.replace(/```html|```/g, '').trim();
+      
       setGeneratedCode(cleanCode);
       const updatedHistory = [...newMsgs, { role: 'assistant', content: cleanCode }];
       setMessages(updatedHistory);
@@ -80,9 +81,9 @@ export default function SiddiqAI() {
     return (
       <div className="h-screen bg-black flex items-center justify-center p-6 text-white font-sans text-center">
         <div className="w-full max-w-sm bg-gray-900 border border-white/10 p-10 rounded-[2.5rem] shadow-2xl">
-          <h1 className="text-3xl font-black text-blue-500 mb-6 italic tracking-tighter uppercase">Siddiq AI</h1>
+          <h1 className="text-3xl font-black text-blue-500 mb-6 italic">SIDDIQ AI</h1>
           <input type="password" placeholder="ENTER CODE" className="w-full bg-black border border-gray-800 p-4 rounded-xl outline-none focus:border-blue-600 mb-4 text-white text-center font-bold tracking-[0.5em]" value={passInput} onChange={(e) => setPassInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} />
-          <button onClick={handleLogin} className="w-full bg-blue-600 p-4 rounded-xl font-bold uppercase tracking-widest">Unlock Portal</button>
+          <button onClick={handleLogin} className="w-full bg-blue-600 p-4 rounded-xl font-bold uppercase tracking-widest text-sm">Unlock Portal</button>
         </div>
       </div>
     );
@@ -92,21 +93,20 @@ export default function SiddiqAI() {
     <div className="flex flex-col md:flex-row h-screen bg-[#050505] text-white overflow-hidden font-sans">
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
       
-      {/* Sidebar */}
-      <div className="w-full md:w-96 border-b md:border-b-0 md:border-r border-white/10 flex flex-col bg-[#0a0a0a] z-30">
+      <div className="w-full md:w-96 border-b md:border-b-0 md:border-r border-white/10 flex flex-col bg-[#0a0a0a] z-30 shadow-xl">
         <div className="p-4 md:p-6 border-b border-white/5 flex justify-between items-center">
           <h1 className="text-xl font-black text-blue-500 italic">SIDDIQ AI</h1>
           <div className="flex gap-4">
-            <button onClick={startNewProject} title="New Project" className="text-gray-500 hover:text-white transition-all"><i className="fas fa-plus-circle"></i></button>
-            <button onClick={saveToCloud} title="Save Cloud" className="text-gray-500 hover:text-blue-400 transition-all"><i className="fas fa-cloud"></i></button>
+            <button onClick={startNewProject} className="text-gray-500 hover:text-white transition-all"><i className="fas fa-plus-circle"></i></button>
+            <button onClick={saveToCloud} className="text-gray-500 hover:text-blue-400 transition-all"><i className="fas fa-cloud"></i></button>
             <button onClick={() => {localStorage.removeItem('siddiq_access'); window.location.reload();}} className="text-gray-500 hover:text-red-500 transition-all"><i className="fas fa-power-off"></i></button>
           </div>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-black/20">
           {messages.filter(m => m.role === 'user').map((m, i) => (
-            <div key={i} className="p-3 rounded-xl bg-blue-600/20 border border-blue-600/30 text-xs text-blue-100">
-              <i className="fas fa-comment-dots mr-2 opacity-50"></i> {m.content}
+            <div key={i} className="p-3 rounded-xl bg-blue-600/20 border border-blue-600/30 text-[10px] text-blue-100 flex items-start gap-2">
+              <i className="fas fa-comment-dots mt-1 opacity-50"></i> {m.content}
             </div>
           ))}
         </div>
@@ -119,18 +119,17 @@ export default function SiddiqAI() {
         </div>
       </div>
 
-      {/* Main Canvas */}
       <div className="flex-1 flex flex-col bg-[#f1f5f9] overflow-hidden">
-        <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 z-20 shadow-sm">
-          <div className="flex gap-6">
+        <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 z-20 shadow-sm">
+          <div className="flex gap-4">
             <button onClick={() => setView('preview')} className={`text-[10px] font-black uppercase tracking-widest ${view === 'preview' ? 'text-blue-600 border-b-2 border-blue-600 pb-1' : 'text-gray-400'}`}>Canvas</button>
             <button onClick={() => setView('code')} className={`text-[10px] font-black uppercase tracking-widest ${view === 'code' ? 'text-blue-600 border-b-2 border-blue-600 pb-1' : 'text-gray-400'}`}>Code</button>
           </div>
 
           <div className="flex bg-gray-100 p-1 rounded-lg gap-1 border border-gray-200">
-            <button onClick={() => setPreviewSize('desktop')} className={`p-1.5 px-3 rounded-md text-xs ${previewSize === 'desktop' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400'}`}><i className="fas fa-desktop"></i></button>
-            <button onClick={() => setPreviewSize('tablet')} className={`p-1.5 px-3 rounded-md text-xs ${previewSize === 'tablet' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400'}`}><i className="fas fa-tablet-screen-button"></i></button>
-            <button onClick={() => setPreviewSize('mobile')} className={`p-1.5 px-3 rounded-md text-xs ${previewSize === 'mobile' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400'}`}><i className="fas fa-mobile-screen-button"></i></button>
+            <button onClick={() => setPreviewSize('desktop')} className={`p-1 px-3 rounded-md text-xs ${previewSize === 'desktop' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400'}`}><i className="fas fa-desktop"></i></button>
+            <button onClick={() => setPreviewSize('tablet')} className={`p-1 px-3 rounded-md text-xs ${previewSize === 'tablet' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400'}`}><i className="fas fa-tablet"></i></button>
+            <button onClick={() => setPreviewSize('mobile')} className={`p-1 px-3 rounded-md text-xs ${previewSize === 'mobile' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400'}`}><i className="fas fa-mobile-alt"></i></button>
           </div>
         </div>
 
