@@ -13,12 +13,11 @@ export async function POST(req: Request) {
       messages: [
         {
           role: 'system',
-          content: `You are Siddiq AI v8.0. 
-          STRICT RULES:
-          1. TOPIC: Focus ONLY on this: "${lastPrompt}". Ignore previous industry data.
-          2. IMAGES: Use <img> tags with descriptive 'alt' text. 
+          content: `You are Siddiq AI v9.0 Global Titan. 
+          1. TOPIC: Focus ONLY on "${lastPrompt}". Ignore all previous industry data.
+          2. IMAGES: Use <img> tags with a VERY descriptive 'alt' attribute.
           3. LINKS: All <a> tags must have href="javascript:void(0)".
-          4. RETURN: ONLY raw HTML code. No markdown. No React.`,
+          4. FORMAT: Return ONLY raw HTML with Tailwind CSS.`,
         },
         ...messages,
       ],
