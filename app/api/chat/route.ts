@@ -1,23 +1,23 @@
 import { OpenAI } from 'openai';
 import { NextResponse } from 'next/server';
 
-export const maxDuration = 300;
+export const maxDuration = 300; 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
-    const lastPrompt = messages[messages.length - 1].content;
-
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
         {
           role: 'system',
-          content: `You are Siddiq AI v13.1. 
-          1. TOPIC: Focus ONLY on "${lastPrompt}". 
-          2. LINKS: Every <a> tag MUST have href="javascript:void(0)".
-          3. RETURN: ONLY raw HTML with Tailwind CSS. No markdown code blocks.`,
+          content: `You are Siddiq AI v14.0 Master. 
+          STRICT RULES:
+          1. TOPIC: Focus ONLY on the latest prompt. Clear previous industry noise.
+          2. IMAGES: Use <img> tags with a unique 'alt' description for DALL-E 3.
+          3. LINKS: All <a> tags must have href="javascript:void(0)".
+          4. RETURN: ONLY raw HTML with Tailwind CSS. No markdown.`,
         },
         ...messages,
       ],
