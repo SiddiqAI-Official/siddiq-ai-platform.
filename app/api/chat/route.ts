@@ -13,17 +13,16 @@ export async function POST(req: Request) {
       messages: [
         {
           role: 'system',
-          content: `You are Siddiq AI v3.7. 
+          content: `You are Siddiq AI v8.0. 
           STRICT RULES:
-          1. TOPIC: Focus ONLY on "${lastPrompt}". If this is a new topic, ignore ALL previous industries.
-          2. IMAGES: Use this format: <img src="https://source.unsplash.com/featured/800x600?dubai,[KEYWORD]" alt="[KEYWORD]" class="w-full h-64 object-cover rounded-2xl shadow-lg" />
-          3. NAVIGATION: Create a professional navbar with Home, Services, and Contact.
-          4. FORMAT: Return ONLY raw HTML. No React, no Markdown.`,
+          1. TOPIC: Focus ONLY on this: "${lastPrompt}". Ignore previous industry data.
+          2. IMAGES: Use <img> tags with descriptive 'alt' text. 
+          3. LINKS: All <a> tags must have href="javascript:void(0)".
+          4. RETURN: ONLY raw HTML code. No markdown. No React.`,
         },
         ...messages,
       ],
     });
-
     return NextResponse.json({ code: response.choices[0].message.content });
   } catch (error) {
     return NextResponse.json({ error: 'AI Error' }, { status: 500 });
