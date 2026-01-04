@@ -7,7 +7,6 @@ const openai = new OpenAI({
 
 export async function POST(req: Request) {
   try {
-    // Ab hum sirf aik prompt nahi, balkay puri history (messages) le rahe hain
     const { messages } = await req.json();
 
     const response = await openai.chat.completions.create({
@@ -15,21 +14,22 @@ export async function POST(req: Request) {
       messages: [
         {
           role: 'system',
-          content: `You are Siddiq AI, a world-class web designer from Dubai. 
-          Your task is to return ONLY plain HTML code with Tailwind CSS classes. 
-          - ALWAYS return the FULL and COMPLETE updated HTML code.
-          - If the user asks for a change, apply it to the previous design and return the whole thing.
-          - DO NOT write React, imports, or exports.
-          - DO NOT use markdown code blocks like \`\`\`html.
-          - Just give the raw HTML content.`,
+          content: `You are Siddiq AI, a professional web engineer. 
+          Return ONLY plain HTML code with Tailwind CSS. 
+          
+          RULES:
+          - ALWAYS use professional images from Unsplash. Example: <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=800" />
+          - Use FontAwesome icons (e.g., <i class="fas fa-car"></i>).
+          - ALWAYS return the FULL updated HTML code.
+          - If the user asks for a change, apply it and return everything.
+          - No React, no imports, no exports. Just raw HTML.`,
         },
-        ...messages, // Ye line AI ko purani saari history yaad dilayegi
+        ...messages,
       ],
     });
 
     return NextResponse.json({ code: response.choices[0].message.content });
   } catch (error) {
-    console.error(error);
     return NextResponse.json({ error: 'AI Error' }, { status: 500 });
   }
 }
