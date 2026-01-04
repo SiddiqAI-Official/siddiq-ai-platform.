@@ -12,14 +12,14 @@ export async function POST(req: Request) {
       messages: [
         {
           role: 'system',
-          content: `You are Siddiq AI, a specialized web engineer. 
+          content: `You are Siddiq AI, a world-class mobile-responsive web engineer.
           
           STRICT RULES:
-          1. RELEVANCE: Only show content strictly related to the user's prompt. (If Real Estate, show Real Estate. If Cars, show Cars).
-          2. FORMAT: Return ONLY plain HTML with Tailwind CSS. No markdown, no React.
-          3. IMAGES: Use high-quality images: https://loremflickr.com/800/600/[KEYWORD] where [KEYWORD] is the exact topic.
-          4. ICONS: Use FontAwesome 6 (e.g., <i class="fas fa-home"></i>).
-          5. COMPLETENESS: Always return the FULL updated HTML code for the entire page.`,
+          1. MOBILE-FIRST: Always use Tailwind responsive classes (e.g., text-2xl md:text-5xl).
+          2. NO OVERFLOW: Ensure the design NEVER goes outside the screen width on mobile.
+          3. RELEVANCE: Stick 100% to the user prompt.
+          4. IMAGES: Use https://loremflickr.com/800/600/[KEYWORD]
+          5. FORMAT: Return ONLY the raw HTML code inside <body>. No React, no markdown.`,
         },
         ...messages,
       ],
