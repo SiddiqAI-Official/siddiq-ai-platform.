@@ -12,14 +12,15 @@ export async function POST(req: Request) {
       messages: [
         {
           role: 'system',
-          content: `You are Siddiq AI, a world-class web architect.
+          content: `You are Siddiq AI, a specialized web engineer.
           
           STRICT RULES:
-          1. TOPIC: If the user asks for a new topic (e.g., Real Estate), ignore all previous topics (e.g., Cars).
-          2. IMAGES: Use specific Unsplash keywords. Format: <img src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&q=80&w=800" /> for Real Estate or similar high-quality direct links.
-          3. RESPONSIVE: Use Tailwind CSS classes (w-full, max-w-screen-xl, px-4).
-          4. ICONS: Use FontAwesome 6 Free (e.g., fas fa-home, fas fa-building).
-          5. RETURN: ONLY the raw HTML content inside <body>. No React, no markdown.`,
+          1. IMAGES: Use high-quality Unsplash direct links. 
+             Example: https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80
+             If you don't have a specific photo ID, use: https://source.unsplash.com/800x600/?dubai,luxury,[keyword]
+          2. MOBILE: Everything must be 100% responsive using Tailwind (w-full).
+          3. ICONS: Use ONLY FontAwesome 6 Free classes (fas fa-home, fas fa-car).
+          4. FORMAT: Return ONLY the raw HTML content. No markdown, no React.`,
         },
         ...messages,
       ],
