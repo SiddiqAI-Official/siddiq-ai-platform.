@@ -1,11 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
 
 export default function SiddiqAI() {
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -13,19 +7,13 @@ export default function SiddiqAI() {
   const [prompt, setPrompt] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [view, setView] = useState<'preview' | 'code'>('preview');
-  const [previewSize, setPreviewSize] = useState<'desktop' | 'mobile' | 'tablet'>('desktop');
   const [messages, setMessages] = useState<any[]>([]);
 
   const MASTER_KEY = "SiddiqAI@2025";
 
   useEffect(() => {
     const savedPass = localStorage.getItem('siddiq_access');
-    const savedCode = localStorage.getItem('siddiq_code');
-    const savedMsgs = localStorage.getItem('siddiq_msgs');
     if (savedPass === MASTER_KEY) setIsAuthorized(true);
-    if (savedCode) setGeneratedCode(savedCode);
-    if (savedMsgs) setMessages(JSON.parse(savedMsgs));
   }, []);
 
   const handleLogin = () => {
@@ -35,27 +23,10 @@ export default function SiddiqAI() {
     } else { alert("Wrong Code!"); }
   };
 
-  const startNewProject = () => {
-    if(confirm("Start new project? History will be cleared.")) {
-      localStorage.removeItem('siddiq_code');
-      localStorage.removeItem('siddiq_msgs');
-      window.location.reload();
-    }
-  };
-
-  const saveToCloud = async () => {
-    const { error } = await supabase.from('projects').insert([
-      { name: 'Project ' + new Date().toLocaleTimeString(), code: generatedCode, history: messages }
-    ]);
-    if (error) alert("Error: " + error.message);
-    else alert("Saved to Cloud! ☁️");
-  };
-
   const generateWebsite = async () => {
     if (!prompt) return;
     setLoading(true);
     const newMsgs = [...messages, { role: 'user', content: prompt }];
-    setMessages(newMsgs);
 
     try {
       const res = await fetch('/api/chat', {
@@ -64,15 +35,25 @@ export default function SiddiqAI() {
         headers: { 'Content-Type': 'application/json' },
       });
       const data = await res.json();
-      const cleanCode = data.code.replace(/```html|```/g, '').trim();
-      
-      setGeneratedCode(cleanCode);
-      const updatedHistory = [...newMsgs, { role: 'assistant', content: cleanCode }];
-      setMessages(updatedHistory);
-      localStorage.setItem('siddiq_code', cleanCode);
-      localStorage.setItem('siddiq_msgs', JSON.stringify(updatedHistory));
+      let finalCode = data.code.replace(/```html|```/g, '').trim();
+
+      // MAGIC: Finding Placeholders and generating REAL AI Images
+      const placeholders = finalCode.match(/AI_IMAGE_[A-Z]+/g);
+      if (placeholders) {
+        for (const placeholder of placeholders) {
+          const keyword = placeholder.replace('AI_IMAGE_', '').toLowerCase();
+          const imgRes = await fetch('/api/image', {
+            method: 'POST',
+            body: JSON.stringify({ prompt: keyword }),
+          });
+          const imgData = await imgRes.json();
+          finalCode = finalCode.replace(placeholder, imgData.url);
+        }
+      }
+
+      setGeneratedCode(finalCode);
+      setMessages([...newMsgs, { role: 'assistant', content: finalCode }]);
       setPrompt(''); 
-      setView('preview');
     } catch (err) { alert("AI Build Error!"); }
     setLoading(false);
   };
@@ -81,9 +62,9 @@ export default function SiddiqAI() {
     return (
       <div className="h-screen bg-black flex items-center justify-center p-6 text-white font-sans text-center">
         <div className="w-full max-w-sm bg-gray-900 border border-white/10 p-10 rounded-[2.5rem] shadow-2xl">
-          <h1 className="text-3xl font-black text-blue-500 mb-6 italic">SIDDIQ AI</h1>
-          <input type="password" placeholder="ENTER CODE" className="w-full bg-black border border-gray-800 p-4 rounded-xl outline-none focus:border-blue-600 mb-4 text-white text-center font-bold tracking-[0.5em]" value={passInput} onChange={(e) => setPassInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} />
-          <button onClick={handleLogin} className="w-full bg-blue-600 p-4 rounded-xl font-bold uppercase tracking-widest text-sm">Unlock Portal</button>
+          <h1 className="text-3xl font-black text-blue-500 mb-6 italic tracking-tighter">SIDDIQ AI 4.0</h1>
+          <input type="password" placeholder="ACCESS CODE" className="w-full bg-black border border-gray-800 p-4 rounded-xl outline-none focus:border-blue-600 mb-4 text-white text-center font-bold" value={passInput} onChange={(e) => setPassInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} />
+          <button onClick={handleLogin} className="w-full bg-blue-600 p-4 rounded-xl font-bold uppercase">Unlock Portal</button>
         </div>
       </div>
     );
@@ -93,52 +74,39 @@ export default function SiddiqAI() {
     <div className="flex flex-col md:flex-row h-screen bg-[#050505] text-white overflow-hidden font-sans">
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
       
+      {/* Sidebar */}
       <div className="w-full md:w-96 border-b md:border-b-0 md:border-r border-white/10 flex flex-col bg-[#0a0a0a] z-30 shadow-xl">
-        <div className="p-4 md:p-6 border-b border-white/5 flex justify-between items-center">
-          <h1 className="text-xl font-black text-blue-500 italic">SIDDIQ AI</h1>
-          <div className="flex gap-4">
-            <button onClick={startNewProject} className="text-gray-500 hover:text-white transition-all"><i className="fas fa-plus-circle"></i></button>
-            <button onClick={saveToCloud} className="text-gray-500 hover:text-blue-400 transition-all"><i className="fas fa-cloud"></i></button>
-            <button onClick={() => {localStorage.removeItem('siddiq_access'); window.location.reload();}} className="text-gray-500 hover:text-red-500 transition-all"><i className="fas fa-power-off"></i></button>
-          </div>
+        <div className="p-6 border-b border-white/5 flex justify-between items-center">
+          <h1 className="text-xl font-black text-blue-500 italic">SIDDIQ AI <span className="text-[10px] text-gray-500 ml-2">v4.0</span></h1>
+          <button onClick={() => {localStorage.clear(); window.location.reload();}} className="text-gray-500 hover:text-red-500"><i className="fas fa-power-off"></i></button>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-black/20">
-          {messages.filter(m => m.role === 'user').map((m, i) => (
-            <div key={i} className="p-3 rounded-xl bg-blue-600/20 border border-blue-600/30 text-[10px] text-blue-100 flex items-start gap-2">
-              <i className="fas fa-comment-dots mt-1 opacity-50"></i> {m.content}
-            </div>
-          ))}
-        </div>
-
-        <div className="p-4 bg-[#0a0a0a] border-t border-white/5 space-y-3">
-          <textarea className="w-full p-4 bg-white/5 border border-white/10 rounded-xl focus:border-blue-500 outline-none h-24 text-sm text-white resize-none" placeholder="Describe your vision..." value={prompt} onChange={(e) => setPrompt(e.target.value)} />
-          <button onClick={generateWebsite} className="w-full bg-blue-600 hover:bg-blue-500 p-3 rounded-xl font-bold text-xs tracking-widest transition-all" disabled={loading}>
-            {loading ? <i className="fas fa-spinner fa-spin"></i> : 'GENERATE DESIGN'}
+        <div className="p-6 flex-1 flex flex-col gap-6">
+          <div className="space-y-2 text-left">
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Design Instruction</label>
+            <textarea className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl focus:border-blue-500 outline-none h-48 text-sm text-white transition-all" placeholder="E.g. Create a luxury car rental page..." value={prompt} onChange={(e) => setPrompt(e.target.value)} />
+          </div>
+          <button onClick={generateWebsite} className="w-full bg-blue-600 hover:bg-blue-500 p-4 rounded-2xl font-black text-xs tracking-[0.2em] shadow-lg disabled:opacity-50" disabled={loading}>
+            {loading ? <i className="fas fa-magic animate-spin mr-2"></i> : 'GENERATE WITH AI IMAGES'}
           </button>
+          <p className="text-[10px] text-gray-600 text-center uppercase tracking-widest">Powered by DALL-E 3 Technology</p>
         </div>
       </div>
 
+      {/* Canvas Area */}
       <div className="flex-1 flex flex-col bg-[#f1f5f9] overflow-hidden">
-        <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 z-20 shadow-sm">
-          <div className="flex gap-4">
-            <button onClick={() => setView('preview')} className={`text-[10px] font-black uppercase tracking-widest ${view === 'preview' ? 'text-blue-600 border-b-2 border-blue-600 pb-1' : 'text-gray-400'}`}>Canvas</button>
-            <button onClick={() => setView('code')} className={`text-[10px] font-black uppercase tracking-widest ${view === 'code' ? 'text-blue-600 border-b-2 border-blue-600 pb-1' : 'text-gray-400'}`}>Code</button>
-          </div>
-
-          <div className="flex bg-gray-100 p-1 rounded-lg gap-1 border border-gray-200">
-            <button onClick={() => setPreviewSize('desktop')} className={`p-1 px-3 rounded-md text-xs ${previewSize === 'desktop' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400'}`}><i className="fas fa-desktop"></i></button>
-            <button onClick={() => setPreviewSize('tablet')} className={`p-1 px-3 rounded-md text-xs ${previewSize === 'tablet' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400'}`}><i className="fas fa-tablet"></i></button>
-            <button onClick={() => setPreviewSize('mobile')} className={`p-1 px-3 rounded-md text-xs ${previewSize === 'mobile' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400'}`}><i className="fas fa-mobile-alt"></i></button>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-auto flex justify-center items-start md:p-8 p-2 bg-[#e2e8f0]/50">
-          <div style={{ width: previewSize === 'desktop' ? '100%' : previewSize === 'tablet' ? '768px' : '375px', height: previewSize === 'desktop' ? '100%' : '667px' }} className="transition-all duration-500 shadow-2xl bg-white overflow-hidden rounded-2xl border border-gray-300 mx-auto">
-            {view === 'preview' ? (
-              <iframe srcDoc={`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><script src="https://cdn.tailwindcss.com"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet"><style>body{margin:0;padding:0;overflow-x:hidden;font-family:sans-serif;}</style><script>window.onclick=function(e){if(e.target.tagName==="A")e.preventDefault();};</script></head><body>${generatedCode || '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#cbd5e1;text-transform:uppercase;letter-spacing:5px;font-size:10px;font-weight:900;">Engine Ready</div>'}</body></html>`} className="w-full h-full border-none" />
+        <div className="flex-1 overflow-auto p-4 md:p-12">
+          <div className="w-full h-full bg-white shadow-2xl rounded-3xl overflow-hidden border border-gray-200">
+            {generatedCode ? (
+              <iframe srcDoc={`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><script src="https://cdn.tailwindcss.com"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet"><style>body{margin:0;padding:0;overflow-x:hidden;font-family:sans-serif;}</style></head><body>${generatedCode}</body></html>`} className="w-full h-full border-none" />
             ) : (
-              <div className="bg-[#0a0a0a] h-full p-6 overflow-auto text-blue-400 font-mono text-xs"><pre><code>{generatedCode}</code></pre></div>
+              <div className="flex flex-col items-center justify-center h-full text-center p-10">
+                 <div className="w-20 h-20 bg-blue-600/10 rounded-full flex items-center justify-center mb-6">
+                    <i className="fas fa-wand-sparkles text-3xl text-blue-600"></i>
+                 </div>
+                 <h2 className="text-2xl font-black text-gray-900 mb-2 uppercase tracking-tighter italic">Ready to Create</h2>
+                 <p className="text-gray-500 max-w-xs text-sm">Describe your vision and I will generate the code and original AI images for you.</p>
+              </div>
             )}
           </div>
         </div>
