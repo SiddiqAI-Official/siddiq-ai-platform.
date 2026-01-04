@@ -37,7 +37,7 @@ export default function SiddiqAI() {
       setGeneratedCode(cleanCode);
       localStorage.setItem('siddiq_code', cleanCode);
       setPrompt(''); 
-    } catch (err) { alert("System busy, please try again."); }
+    } catch (err) { alert("Server Busy. Try again."); }
     setLoading(false);
   };
 
@@ -46,7 +46,7 @@ export default function SiddiqAI() {
       <div className="h-screen bg-black flex items-center justify-center p-6 text-white font-sans text-center">
         <div className="w-full max-w-sm bg-gray-900 border border-white/10 p-10 rounded-[2.5rem] shadow-2xl">
           <h1 className="text-3xl font-black text-blue-500 mb-6 italic uppercase">Siddiq AI</h1>
-          <input type="password" placeholder="ACCESS CODE" className="w-full bg-black border border-gray-800 p-4 rounded-xl outline-none focus:border-blue-600 mb-4 text-white text-center font-bold" value={passInput} onChange={(e) => setPassInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} />
+          <input type="password" placeholder="ENTER CODE" className="w-full bg-black border border-gray-800 p-4 rounded-xl outline-none focus:border-blue-600 mb-4 text-white text-center font-bold" value={passInput} onChange={(e) => setPassInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} />
           <button onClick={handleLogin} className="w-full bg-blue-600 p-4 rounded-xl font-bold uppercase">Unlock</button>
         </div>
       </div>
@@ -56,12 +56,11 @@ export default function SiddiqAI() {
   return (
     <div className="flex flex-col md:flex-row h-screen bg-[#050505] text-white overflow-hidden font-sans">
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
-      
       <div className="w-full md:w-96 border-r border-white/10 flex flex-col bg-[#0a0a0a] p-6 shadow-xl z-30">
-        <h1 className="text-xl font-black text-blue-500 mb-8 italic uppercase leading-none">Siddiq AI <span className="text-[10px] text-gray-600">v7.0 PRO</span></h1>
-        <textarea className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl focus:border-blue-500 outline-none h-48 text-sm text-white transition-all mb-4" placeholder="Describe your vision..." value={prompt} onChange={(e) => setPrompt(e.target.value)} />
+        <h1 className="text-xl font-black text-blue-500 mb-8 italic uppercase leading-none text-left">SIDDIQ AI <span className="text-[10px] text-gray-600">v7.1 PRO</span></h1>
+        <textarea className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl focus:border-blue-500 outline-none h-48 text-sm text-white transition-all mb-4" placeholder="E.g. Ferrari rental page..." value={prompt} onChange={(e) => setPrompt(e.target.value)} />
         <button onClick={generateWebsite} className="w-full bg-blue-600 hover:bg-blue-500 p-4 rounded-2xl font-black text-xs tracking-widest disabled:opacity-50" disabled={loading}>
-          {loading ? 'BUILDING DESIGN...' : 'GENERATE WITH DALL-E 3'}
+          {loading ? 'BUILDING...' : 'GENERATE WITH DALL-E 3'}
         </button>
       </div>
 
@@ -69,34 +68,11 @@ export default function SiddiqAI() {
         <div className="w-full h-full bg-white shadow-2xl rounded-3xl overflow-hidden border border-gray-200">
           {generatedCode ? (
             <iframe 
-              srcDoc={`
-                <!DOCTYPE html><html><head><meta charset="UTF-8"><script src="https://cdn.tailwindcss.com"></script></head><body style="margin:0;">
-                ${generatedCode}
-                <script>
-                  async function loadImages() {
-                    const imgs = document.querySelectorAll('img');
-                    for (const img of imgs) {
-                      const altText = img.alt || "luxury property";
-                      img.src = "https://placehold.co/800x600?text=Generating+with+DALL-E+3...";
-                      try {
-                        const res = await fetch('/api/image', {
-                          method: 'POST',
-                          body: JSON.stringify({ prompt: altText }),
-                          headers: { 'Content-Type': 'application/json' }
-                        });
-                        const data = await res.json();
-                        if (data.url) img.src = data.url;
-                      } catch (e) { console.error(e); }
-                    }
-                  }
-                  window.onload = loadImages;
-                </script>
-                </body></html>
-              `} 
+              srcDoc={`<!DOCTYPE html><html><head><meta charset="UTF-8"><script src="https://cdn.tailwindcss.com"></script></head><body style="margin:0;">${generatedCode}<script>async function loadImages(){const imgs=document.querySelectorAll('img');for(const img of imgs){const alt=img.alt||"luxury";try{const res=await fetch('/api/image',{method:'POST',body:JSON.stringify({prompt:alt}),headers:{'Content-Type':'application/json'}});const data=await res.json();if(data.url)img.src=data.url;}catch(e){console.error(e);}}}window.onload=loadImages;</script></body></html>`} 
               className="w-full h-full border-none" 
             />
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-300 uppercase tracking-widest text-[10px] font-black">Engine Ready</div>
+            <div className="flex items-center justify-center h-full text-gray-300 uppercase tracking-widest text-[10px] font-black">Engine v7.1 Ready</div>
           )}
         </div>
       </div>
