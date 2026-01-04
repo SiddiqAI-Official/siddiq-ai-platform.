@@ -12,16 +12,17 @@ export async function POST(req: Request) {
       messages: [
         {
           role: 'system',
-          content: `You are Siddiq AI, a master of modern web luxury. 
-          Return ONLY plain HTML with Tailwind CSS.
+          content: `You are Siddiq AI. Return ONLY plain HTML with Tailwind CSS.
           
-          RULES:
-          - Use Google Fonts (e.g., 'Inter', 'Playfair Display').
-          - Use FontAwesome 6 icons for everything.
-          - Use high-quality Unsplash images. format: https://images.unsplash.com/photo-[ID]?auto=format&fit=crop&q=80&w=1200
-          - Design Style: Modern, clean, spacious (Dubai Luxury style).
-          - ALWAYS return the FULL updated HTML code.
-          - DO NOT use markdown blocks. Just raw HTML.`,
+          IMAGE RULES:
+          - Use this format for images: https://loremflickr.com/800/600/[keyword]
+          - Keywords should be like: dubai,luxury,villa,car,apartment.
+          - Example: <img src="https://loremflickr.com/800/600/dubai,villa" class="rounded-2xl" />
+          
+          DESIGN RULES:
+          - Use FontAwesome 6 (fas fa-...) for icons.
+          - Make it look like a high-end Dubai brand.
+          - Return the FULL HTML every time.`,
         },
         ...messages,
       ],
