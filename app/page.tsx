@@ -27,86 +27,89 @@ export default function SiddiqAI() {
     if (!prompt) return;
     setLoading(true);
     try {
-      // 1. Get HTML from AI
       const res = await fetch('/api/chat', {
         method: 'POST',
         body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] }),
         headers: { 'Content-Type': 'application/json' },
       });
-      
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Chat API failed");
+      const cleanCode = data.code.replace(/```html|```/g, '').trim();
       
-      let finalCode = data.code.replace(/```html|```/g, '').trim();
-
-      // 2. Look for AI_IMAGE Placeholders
-      const placeholders = finalCode.match(/AI_IMAGE_[A-Z_]+/g);
-      if (placeholders) {
-        for (const placeholder of placeholders) {
-          const keyword = placeholder.replace('AI_IMAGE_', '').toLowerCase().replace('_', ' ');
-          
-          try {
-            const imgRes = await fetch('/api/image', {
-              method: 'POST',
-              body: JSON.stringify({ prompt: keyword }),
-            });
-            const imgData = await imgRes.json();
-            if (imgData.url) {
-              finalCode = finalCode.split(placeholder).join(imgData.url);
-            }
-          } catch (e) {
-             console.log("Image generation skipped for one placeholder");
-          }
-        }
-      }
-
-      setGeneratedCode(finalCode);
-      localStorage.setItem('siddiq_code', finalCode);
+      setGeneratedCode(cleanCode);
+      localStorage.setItem('siddiq_code', cleanCode);
       setPrompt(''); 
-    } catch (err: any) {
-      alert("System Busy: Please try again in a moment.");
+    } catch (err) {
+      alert("System Busy. Please try again.");
     }
     setLoading(false);
   };
 
-  if (!isAuthorized) {
-    return (
-      <div className="h-screen bg-black flex items-center justify-center p-6 text-white font-sans text-center">
-        <div className="w-full max-w-sm bg-gray-900 border border-white/10 p-10 rounded-[2.5rem] shadow-2xl">
-          <h1 className="text-3xl font-black text-blue-500 mb-6 italic uppercase">Siddiq AI</h1>
-          <input type="password" placeholder="ENTER CODE" className="w-full bg-black border border-gray-800 p-4 rounded-xl outline-none focus:border-blue-600 mb-4 text-white text-center font-bold" value={passInput} onChange={(e) => setPassInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} />
-          <button onClick={handleLogin} className="w-full bg-blue-600 p-4 rounded-xl font-bold uppercase">Unlock Portal</button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-[#050505] text-white overflow-hidden font-sans">
+    <div className="flex h-screen bg-[#050505] text-white overflow-hidden font-sans">
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
-      <div className="w-full md:w-96 border-b md:border-b-0 md:border-r border-white/10 flex flex-col bg-[#0a0a0a] z-30 shadow-xl p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-xl font-black text-blue-500 italic leading-none">SIDDIQ AI</h1>
-          <button onClick={() => {localStorage.clear(); window.location.reload();}} className="text-gray-600 hover:text-red-500"><i className="fas fa-power-off"></i></button>
+      
+      {!isAuthorized ? (
+        <div className="flex-1 flex items-center justify-center p-6 bg-black">
+          <div className="w-full max-w-sm bg-gray-900 p-10 rounded-[2.5rem] border border-white/10 text-center shadow-2xl">
+            <h1 className="text-2xl font-black text-blue-500 mb-6 italic uppercase">Siddiq AI Portal</h1>
+            <input type="password" placeholder="ENTER CODE" className="w-full bg-black border border-gray-800 p-4 rounded-xl outline-none focus:border-blue-600 mb-4 text-center text-white font-bold" value={passInput} onChange={(e) => setPassInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} />
+            <button onClick={handleLogin} className="w-full bg-blue-600 p-4 rounded-xl font-bold uppercase text-xs">Unlock</button>
+          </div>
         </div>
-        <textarea className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl focus:border-blue-500 outline-none h-48 text-sm text-white transition-all mb-4" placeholder="Describe your vision..." value={prompt} onChange={(e) => setPrompt(e.target.value)} />
-        <button onClick={generateWebsite} className="w-full bg-blue-600 hover:bg-blue-500 p-4 rounded-2xl font-black text-xs tracking-widest disabled:opacity-50" disabled={loading}>
-          {loading ? 'PROCESSING AI IMAGES...' : 'GENERATE DESIGN'}
-        </button>
-      </div>
-
-      <div className="flex-1 flex flex-col bg-[#f1f5f9] overflow-hidden p-4 md:p-12">
-        <div className="w-full h-full bg-white shadow-2xl rounded-3xl overflow-hidden border border-gray-200">
-          {generatedCode ? (
-            <iframe srcDoc={`<!DOCTYPE html><html><head><meta charset="UTF-8"><script src="https://cdn.tailwindcss.com"></script></head><body style="margin:0;">${generatedCode}</body></html>`} className="w-full h-full border-none" />
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-gray-300 uppercase tracking-widest text-xs font-bold text-center p-6">
-              <i className="fas fa-wand-sparkles text-4xl mb-4 opacity-20"></i>
-              <p>Ready to build with original images</p>
+      ) : (
+        <>
+          {/* Sidebar */}
+          <div className="w-full md:w-96 border-r border-white/10 flex flex-col bg-[#0a0a0a] p-6 shadow-xl z-30">
+            <div className="flex justify-between items-center mb-8">
+              <h1 className="text-xl font-black text-blue-500 italic">SIDDIQ AI <span className="text-[10px] text-gray-600">v4.2</span></h1>
+              <button onClick={() => {localStorage.clear(); window.location.reload();}} className="text-gray-600 hover:text-red-500"><i className="fas fa-power-off"></i></button>
             </div>
-          )}
-        </div>
-      </div>
+            <textarea className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl focus:border-blue-500 outline-none h-48 text-sm text-white transition-all mb-4" placeholder="Describe your vision..." value={prompt} onChange={(e) => setPrompt(e.target.value)} />
+            <button onClick={generateWebsite} className="w-full bg-blue-600 hover:bg-blue-500 p-4 rounded-2xl font-black text-xs tracking-widest disabled:opacity-50" disabled={loading}>
+              {loading ? 'BUILDING CODE...' : 'GENERATE WEBSITE'}
+            </button>
+            <p className="mt-4 text-[10px] text-gray-600 uppercase tracking-tighter text-center">AI images will load automatically after the code is built.</p>
+          </div>
+
+          {/* Canvas Area */}
+          <div className="flex-1 flex flex-col bg-[#f1f5f9] overflow-hidden p-4 md:p-10">
+            <div className="w-full h-full bg-white shadow-2xl rounded-3xl overflow-hidden border border-gray-200">
+              {generatedCode ? (
+                <iframe 
+                  id="preview-frame"
+                  srcDoc={`
+                    <!DOCTYPE html><html><head><meta charset="UTF-8"><script src="https://cdn.tailwindcss.com"></script></head><body style="margin:0;">
+                    ${generatedCode}
+                    <script>
+                      // SCRIPT TO FETCH AI IMAGES ONE BY ONE
+                      async function loadAIImages() {
+                        const images = document.querySelectorAll('img[data-ai-prompt]');
+                        for (const img of images) {
+                          const prompt = img.getAttribute('data-ai-prompt');
+                          try {
+                            const res = await fetch('/api/image', {
+                              method: 'POST',
+                              body: JSON.stringify({ prompt: prompt }),
+                              headers: { 'Content-Type': 'application/json' }
+                            });
+                            const data = await res.json();
+                            if (data.url) img.src = data.url;
+                          } catch (e) { console.error(e); }
+                        }
+                      }
+                      window.onload = loadAIImages;
+                    </script>
+                    </body></html>
+                  `} 
+                  className="w-full h-full border-none" 
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-300 uppercase tracking-widest text-xs font-bold">Waiting for your vision...</div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
